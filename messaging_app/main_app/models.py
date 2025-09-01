@@ -14,3 +14,19 @@ class Chat(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class ChatMember(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_memberships')
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='memberships')
+
+    is_admin = models.BooleanField(default=False)
+
+    class MEta:
+        db_table = "chat_members"
+
+    def __str__(self):
+        is_admin = 'admin' if self.is_admin else 'member'
+        return f'{self.user} in {self.chat} {{is_admin}}'
+    
+
