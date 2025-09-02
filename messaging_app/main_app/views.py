@@ -25,7 +25,7 @@ class MyChatsPageView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return (
-            Chat.objects.filter( memberships_user = self.request.user ).distinct().prefetch_related("participants")
+            Chat.objects.filter( memberships__user = self.request.user ).distinct().prefetch_related("participants")
         )
     
 class ChatMembershipMixin:

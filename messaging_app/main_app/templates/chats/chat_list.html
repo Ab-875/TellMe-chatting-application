@@ -4,7 +4,7 @@
 <ul>
     {% for chat in chats%}
         <li>
-            <a href="{% url "chat_detail_page.html" chat_id=chat.id %}">
+            <a href="{% url "chat_detail_page" chat_id=chat.id %}">
                 {{chat.name|default:"Chat "}}{ chat.id}
             </a>
         </li>
