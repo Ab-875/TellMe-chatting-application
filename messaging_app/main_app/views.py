@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.views.generic import FormView, ListView, DeleteView
 from . models import Chat, ChatMember
 from . forms import CreateChatForm
-
+from django.http import HttpResponseForbidden
 
 # Create your views here.
 
@@ -23,4 +23,16 @@ class MyChatsPageView(LoginRequiredMixin, ListView):
         return (
             Chat.objects.filter( memberships_user = self.request.user ).distinct().prefetch_related("participants")
         )
+    
+class ChatMembershipMixin:
+    def dispatch(self, request, *args, **kwargs):
+        chat_id = kwargs.get("chat_id")
+        self.chat = get_object_or_404(Chat, pk = chat_id)
+        is_member = ChatMember.objects.filter( chat = self.chat, user = request.user).exists()
+
+        if not is_member:
+            return HttpResponseForbidden("Not a group member")
+        return super()(request, *args, **kwargs)
+            
+        
     
