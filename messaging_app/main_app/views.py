@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
-from django.views.generic import FormView, ListView, DeleteView
+from django.views.generic import FormView, ListView, DetailView
 from . models import Chat, ChatMember
 from . forms import CreateChatForm
 from django.http import HttpResponseForbidden
@@ -34,5 +34,17 @@ class ChatMembershipMixin:
             return HttpResponseForbidden("Not a group member")
         return super()(request, *args, **kwargs)
             
-        
+class ChatDetailPageView(LoginRequiredMixin, ChatMembershipMixin, DetailView):
+    model = Chat
+    pk_url_kwarg = "chat_id"
+    template_name = "chats/chat_detail.html"
+    context_object_name = "chat"
+
+    def get_object(self, queryset = None):
+        return self.chat
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["messages"] = self.chat.messages.select_related("sender").order_by("created_at")[:300]
+        return context
     
