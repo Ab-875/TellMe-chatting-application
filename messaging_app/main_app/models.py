@@ -22,7 +22,7 @@ class ChatMember(models.Model):
 
     is_admin = models.BooleanField(default=False)
 
-    class MEta:
+    class Meta:
         db_table = "chat_members"
 
     def __str__(self):
