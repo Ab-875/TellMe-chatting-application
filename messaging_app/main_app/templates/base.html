@@ -1,0 +1,26 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <nav>
+        <a href="{% url "my_chats_page" %}">Home</a>
+        {% if user.is_authenticated%}
+            <p>Welcome, {{ user.username }}</p>
+            <a href="{% url "my_chats_page" %}">My Chats</a>
+            <a href="{% url "create_chat" %}">New Chat</a>
+            <a href="{% url "logout" %}">Logout</a>
+        {% else %}
+            <a href="{% url "login" %}">Login</a>
+            <a href="{% url "singup" %}">Sign Up</a>    
+    </nav>
+    <hr>
+
+    {% block content %}{% endblock  %}
+</body>
+</html>
