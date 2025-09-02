@@ -4,7 +4,7 @@ from . models import Chat, ChatMember
 
 # https://stackoverflow.com/questions/14835607/django-form-exclude-a-user-instance-from-a-queryset
 
-class CreateChatForm(forms.form):
+class CreateChatForm(forms.Form):
     name = forms.CharField(max_length=50, required=True)
     participants = forms.ModelMultipleChoiceField(
         queryset = User.objects.none(),
