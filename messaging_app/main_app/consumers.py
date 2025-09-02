@@ -26,7 +26,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
-        await self.send(json.dumps({"ok": True, "msg": "connected"}))
+        # await self.send(json.dumps({"ok": True, "msg": "connected"}))
 
 
     async def disconnect(self, code):

@@ -14,8 +14,11 @@ class CreateChatForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("User")
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+        querys = User.objects.all()
+        if self.user is not None:
+            querys = querys.exclude( pk = self.user.pk)
         self.fields["participants"].queryset = User.objects.exclude( pk = self.user.pk )
 
     def clean(self):
@@ -27,6 +30,10 @@ class CreateChatForm(forms.Form):
         return cleaned
 
     def save(self, creator):
+
+        if creator is None:
+            raise ValueError("require a creator user")
+
         users = list(self.cleaned_data["participants"])
         is_group = bool(self.cleaned_data["name"]) or len(users) > 1
 

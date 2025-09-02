@@ -36,7 +36,7 @@ class ChatMembershipMixin:
 
         if not is_member:
             return HttpResponseForbidden("Not a group member")
-        return super()(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
             
 class ChatDetailPageView(LoginRequiredMixin, ChatMembershipMixin, DetailView):
     model = Chat
@@ -54,7 +54,7 @@ class ChatDetailPageView(LoginRequiredMixin, ChatMembershipMixin, DetailView):
     
 class CreateChatView(LoginRequiredMixin, FormView):
     template_name = "chats/create_chat.html"
-    from_class = CreateChatForm
+    form_class = CreateChatForm
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
