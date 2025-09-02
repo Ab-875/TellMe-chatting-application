@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>My Chats</h1>
+
+    <ul>
+        {% for message in messages  %}
+            <li>{{ message.sender.username }}: {{ message.content}}</li>
+        {% endfor %}
+    </ul>
+
+    <form id="send-form">
+        {% csrf_token %}
+        <input id="content" name="content" autocomplete="off" />
+        <button type="submit">Send</button>
+    </form>
+{% endblock  %}
