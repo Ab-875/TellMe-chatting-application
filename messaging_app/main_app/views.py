@@ -8,6 +8,10 @@ from . forms import CreateChatForm
 from django.http import HttpResponseForbidden
 
 # Create your views here.
+# https://stackoverflow.com/questions/4893673/adding-results-to-a-visible-autocompletetextarea-dropdown/4893813#4893813
+# https://stackoverflow.com/questions/22381834/pointer-of-pointer-of-object-dereference/22381925#22381925
+# https://stackoverflow.com/questions/35206978/r-select-from-data-frame-by-date-with-repeated-factors/35207032#35207032
+# https://stackoverflow.com/questions/14483074/cannot-use-turkish-characters-with-entity-framework/14484140#14484140
 
 class SignUpView(FormView):
     template_name = "registration/signup.html"
