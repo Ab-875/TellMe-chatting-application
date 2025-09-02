@@ -48,3 +48,22 @@ class ChatDetailPageView(LoginRequiredMixin, ChatMembershipMixin, DetailView):
         context["messages"] = self.chat.messages.select_related("sender").order_by("created_at")[:300]
         return context
     
+class CreateChatView(LoginRequiredMixin, FormView):
+    template_name = "chats/create_chat.html"
+    from_class = CreateChatForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+    
+
+    def form_valid(self, form):
+        chat = form.save(self.request.user)
+        self.object = chat    
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy("chat_detail_page", kwargs={"chat_id": self.object.id})
+    
+    
