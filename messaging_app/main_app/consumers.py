@@ -4,9 +4,10 @@ from django.contrib.auth.models import AnonymousUser
 from asgiref.sync import sync_to_async
 from .models import ChatMember, Message
 
-class ChatConsmer(AsyncWebsocketConsumer):
+class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
+
         self.chat_id = str(self.scope["url_route"]["kwargs"]["chat_id"])
         self.group_name = f"chat_{self.chat_id}"
 
@@ -25,6 +26,7 @@ class ChatConsmer(AsyncWebsocketConsumer):
         
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
+        await self.send(json.dumps({"ok": True, "msg": "connected"}))
 
 
     async def disconnect(self, code):
