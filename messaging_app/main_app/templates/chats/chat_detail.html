@@ -3,7 +3,7 @@
 {% block content %}
     <h1>My Chats</h1>
 
-    <ul>
+    <ul id="messages">
         {% for message in messages  %}
             <li>{{ message.sender.username }}: {{ message.content}}</li>
         {% endfor %}
@@ -14,4 +14,31 @@
         <input id="content" name="content" autocomplete="off" />
         <button type="submit">Send</button>
     </form>
+
+    {% comment %} inspired by stackoverflow and mdm code {% endcomment %}
+    <script>
+        const chatId = "{{ chat.id }}"
+        const wsScheme = location.protocol === "https:" ? "wss" : "ws"
+        const socket = new WebSocket(`${wsScheme}://${location.host}/ws/chats/${chatId}/`)
+
+        const form = document.getElementById("send-form")
+        const ul = document.getElementById("messages")
+        const input = document.getElementById("content")
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault()
+            const content = input.value.trim()
+            if (content) {
+                socket.send(JSON.stringify({ content }))
+                input.value = ""
+            }
+        })
+
+        socket.addEventListener("message", (event) => {
+            const mes = JSON.parse(event.data)
+            const li = document.createElement("li")
+            li.textContent = `${mes.sender}: ${mes.content}`
+            ul.appendChild(li)
+        })
+    </script>
 {% endblock  %}
