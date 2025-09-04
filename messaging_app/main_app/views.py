@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django.views.generic import FormView, ListView, DetailView, UpdateView, DeleteView
 from . models import Chat, ChatMember
-from . forms import CreateChatForm
+from . forms import CreateChatForm, ChatUpdateForm
 from django.http import HttpResponseForbidden
 
 # Create your views here.
@@ -87,4 +87,27 @@ class ChatAdminRequiredMixin(LoginRequiredMixin):
     def get_object(self, queryset = None):
         querys = queryset or self.get_queryset()
         return querys.get( pk = self.kwargs[self.pk_url_kwarg])
+    
+class ChatUpdateView(ChatAdminRequiredMixin, FormView):
+    template_name = "chats/chat_edit.html"
+    form_class = ChatUpdateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_from_kwargs()
+        kwargs["user"] = self.request.user
+        kwargs["chat"] = self.object
+        return kwargs
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["chat"] = self.object
+        return context
+
+    def form_valid(self, form):
+        chat = form.save()
+        self.object = chat
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy("chat_detail_page", kwargs={"chat_id": self.object.id})
     
