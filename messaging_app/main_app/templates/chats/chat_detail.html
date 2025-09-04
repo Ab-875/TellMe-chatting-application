@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+    {% if user.is_authenticated %}
+        <p>
+            <a href="{% url 'chat_edit' chat_id=chat.id %}"> Edit </a>
+        </p>
+    {% endif %}
+    
     <h1>Chat</h1>
 
     <ul id="messages">

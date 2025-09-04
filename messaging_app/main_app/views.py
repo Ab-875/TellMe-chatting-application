@@ -110,4 +110,10 @@ class ChatUpdateView(ChatAdminRequiredMixin, FormView):
     
     def get_success_url(self):
         return reverse_lazy("chat_detail_page", kwargs={"chat_id": self.object.id})
-    
+
+class ChatDeleteView(ChatAdminRequiredMixin, DeleteView):
+    model = Chat
+    template_name = "chats/chat_confirm_delete.html"
+
+    def get_success_url(self):
+        return reverse_lazy("my_chats_page")

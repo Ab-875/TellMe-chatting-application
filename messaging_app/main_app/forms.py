@@ -63,8 +63,13 @@ class ChatUpdateForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         self.chat = kwargs.pop("chat", None)
+        if self.user is None or self.chat is None:
+            raise ValueError("Need User and Chat")
         super().__init__(*args, **kwargs)
-        self.fields["members"].queryset = User.objects.exclude( pk = self.user.pk )
+
+        querys = User.objects.all().exclude( pk = self.user.pk)
+
+        self.fields["members"].queryset = querys
         self.fields["name"].initial = self.chat.name
         self.fields["is_group"].initial = self.chat.is_group
         current_others = self.chat.participants.exclude( pk = self.user.pk )
@@ -79,13 +84,13 @@ class ChatUpdateForm(forms.Form):
         if not others or others.count() == 0:
             raise forms.ValidationError("Need one User at least")
 
-        not_is_group = bool(name) or others.count() > 1
-        if is_group != not_is_group:
+        inferred_is_group = bool(name) or others.count() > 1
+        if is_group != inferred_is_group:
             raise forms.ValidationError(
                 "Group Chat need more than one other user"
             )
 
-        if not not_is_group and others.count() != 1:
+        if not inferred_is_group and others.count() != 1:
             raise forms.ValidationError("one user allowed only")
 
         return cleaned
@@ -93,10 +98,10 @@ class ChatUpdateForm(forms.Form):
     def save(self):
         others = list(self.cleaned_data["members"])
         name = self.cleaned_data["name"]
-        not_is_group = bool(name) or len(others) > 1
+        inferred_is_group = bool(name) or len(others) > 1
 
-        self.chat.name = name if not_is_group else ""
-        self.chat.is_group = not_is_group
+        self.chat.name = name if inferred_is_group else ""
+        self.chat.is_group = inferred_is_group
         self.chat.save()
 
         desired_ids = {user.id for user in others}

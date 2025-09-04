@@ -24,6 +24,9 @@ class ChatMember(models.Model):
 
     class Meta:
         db_table = "chat_members"
+        constraints = [
+            models.UniqueConstraint(fields=["chat", "user"], name="unique_chat_member")
+        ]
 
     def __str__(self):
         is_admin = 'admin' if self.is_admin else 'member'
