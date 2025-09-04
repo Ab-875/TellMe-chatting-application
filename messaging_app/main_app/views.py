@@ -93,7 +93,7 @@ class ChatUpdateView(ChatAdminRequiredMixin, FormView):
     form_class = ChatUpdateForm
 
     def get_form_kwargs(self):
-        kwargs = super().get_from_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         kwargs["chat"] = self.object
         return kwargs
