@@ -37,6 +37,10 @@ class Message(models.Model):
     sender = models.ForeignKey(User, on_delete= models.CASCADE, related_name='messages')
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(upload_to="chat_images/", null=True, blank=True)
+    file = models.FileField(upload_to="chat_files/", null=True, blank=True)
+    edited_at = models.DateTimeField(blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         db_table = "messages"
