@@ -84,5 +84,7 @@ class ChatAdminRequiredMixin(LoginRequiredMixin):
         
         return super().dispatch(request, *args, **kwargs)
         
-    
+    def get_object(self, queryset = None):
+        querys = queryset or self.get_queryset()
+        return querys.get( pk = self.kwargs[self.pk_url_kwarg])
     
