@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Edit Chat</h1>
+
+    <form method="post">
+        {% csrf_token %}    
+        <p>Name: {{ form.name }}</p>
+        <p>Group: {{ form.is_group }}</p>
+        <h3>All Chat Users:</h3>
+        {{ form.members }}
+
+        <p>
+            <button type="submit"> Save </button>
+            <a href="{% url "chat_detail_page" chat_id = chat.id%}"> Cancel </a>
+        </p>
+    </form>
+{% endblock  %}
