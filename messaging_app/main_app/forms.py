@@ -126,4 +126,18 @@ class ChatUpdateForm(forms.Form):
         )
 
         return self.chat
+    
+class MessageCreateForm(forms.Form):
+    content = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+    image = forms.ImageField(required=False)
+    file = forms.FileField(required=False)
+
+    def clean(self):
+        cleaned = super().clean()
+        if not (cleaned.get("content") or cleaned.get("image") or cleaned.get("file")):
+            raise forms.ValidationError("Need to send something")
+        return cleaned
+    
+class MessageUpdateForm(forms.Form):
+    content = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
 
