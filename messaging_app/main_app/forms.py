@@ -48,3 +48,77 @@ class CreateChatForm(forms.Form):
             ChatMember.objects.create( chat = chat, user = user)
 
         return chat
+    
+# https://stackoverflow.com/questions/4170060/hadoop-map-reduce-chaining/4762414#4762414
+class ChatUpdateForm(forms.Form):
+    name = forms.CharField(max_length=50, required=True)
+    is_group = forms.BooleanField(required=False)
+    members = forms.ModelMultipleChoiceField(
+        queryset = User.objects.none(),
+        widget = forms.CheckboxSelectMultiple,
+        help_text = "Select 1 or more Users",
+        required = True
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        self.chat = kwargs.pop("chat", None)
+        super().__init__(*args, **kwargs)
+        self.fields["members"].queryset = User.objects.exclude( pk = self.user.pk )
+        self.fields["name"].initial = self.chat.name
+        self.fields["is_group"].initial = self.chat.is_group
+        current_others = self.chat.participants.exclude( pk = self.user.pk )
+        self.fields["members"].initial = current_others
+
+    def clean(self):
+        cleaned = super().clean()
+        others = cleaned.get("members")
+        name = cleaned.get("name")
+        is_group = bool(cleaned.get("is_group"))
+
+        if not others or others.count() == 0:
+            raise forms.ValidationError("Need one User at least")
+
+        not_is_group = bool(name) or others.count() > 1
+        if is_group != not_is_group:
+            raise forms.ValidationError(
+                "Group Chat need more than one other user"
+            )
+
+        if not not_is_group and others.count() != 1:
+            raise forms.ValidationError("one user allowed only")
+
+        return cleaned
+    
+    def save(self):
+        others = list(self.cleaned_data["members"])
+        name = self.cleaned_data["name"]
+        not_is_group = bool(name) or len(others) > 1
+
+        self.chat.name = name if not_is_group else ""
+        self.chat.is_group = not_is_group
+        self.chat.save()
+
+        desired_ids = {user.id for user in others}
+        desired_ids.add(self.user.id)  
+
+        current_ids = set(self.chat.participants.values_list("id", flat=True))
+
+        to_add = desired_ids - current_ids
+        to_remove = current_ids - desired_ids
+        to_remove.discard(self.user.id)  
+
+        if to_add:
+            ChatMember.objects.bulk_create(
+                [ChatMember(chat=self.chat, user_id=uid) for uid in to_add],
+                ignore_conflicts=True,
+            )
+        if to_remove:
+            ChatMember.objects.filter(chat=self.chat, user_id__in=to_remove).delete()
+
+        ChatMember.objects.update_or_create(
+            chat=self.chat, user=self.user, defaults={"is_admin": True}
+        )
+
+        return self.chat
+
