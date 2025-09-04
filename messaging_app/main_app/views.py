@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
-from django.views.generic import FormView, ListView, DetailView
+from django.views.generic import FormView, ListView, DetailView, UpdateView, DeleteView
 from . models import Chat, ChatMember
 from . forms import CreateChatForm
 from django.http import HttpResponseForbidden
@@ -69,5 +69,20 @@ class CreateChatView(LoginRequiredMixin, FormView):
     
     def get_success_url(self):
         return reverse_lazy("chat_detail_page", kwargs={"chat_id": self.object.id})
+    
+class ChatAdminRequiredMixin(LoginRequiredMixin):
+    pk_url_kwarg = "chat_id"
+
+    def get_queryset(self):
+        return Chat.objects.filter(memberships__user = self.request.user, memberships__is_admin = True)
+    
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.object = self.get_object()
+        except Exception:
+            return HttpResponseForbidden("Unallowed access to manage chat")
+        
+        return super().dispatch(request, *args, **kwargs)
+        
     
     
