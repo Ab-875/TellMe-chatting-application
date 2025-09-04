@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Delete Chat</h1>
+    <p>Are you sure you want to delete "{{ object.name|default:'this chat'}}"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit"> Yes </button>
+        <a href="{% url "chat_detail_page" chat_id=object.id %}"> Cancel </a>
+    </form>
+{% endblock  %}

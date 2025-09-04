@@ -8,6 +8,6 @@ urlpatterns = [
    path("chats/new/", CreateChatView.as_view(), name="create_chat"),
    path("chats/<int:chat_id>/", ChatDetailPageView.as_view(), name="chat_detail_page"),
    path("chats/<int:chat_id>/edit/", ChatUpdateView.as_view(), name="chat_edit"),
-   path("chats/<int:chat_id>/delete/", ChatUpdateView.as_view(), name="chat_delete"),
+   path("chats/<int:chat_id>/delete/", ChatDeleteView.as_view(), name="chat_delete"),
    
 ]

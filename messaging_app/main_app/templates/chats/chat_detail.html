@@ -4,6 +4,7 @@
     {% if user.is_authenticated %}
         <p>
             <a href="{% url 'chat_edit' chat_id=chat.id %}"> Edit </a>
+            <a href="{% url 'chat_delete' chat_id=chat.id %}"> Delete </a>
         </p>
     {% endif %}
     
