@@ -1,16 +1,38 @@
 {% extends "base.html" %}
-
+{% block title %}My Chats{% endblock %}
 {% block content %}
-<ul>
-    {% for chat in chats%}
-        <li>
-            <a href="{% url "chat_detail_page" chat_id=chat.id %}">
-                {{chat.name|default:"Chat "}}
-            </a>
+<div class="wa">
+  <aside class="wa-sidebar">
+    <div class="wa-sidebar-header">
+      <form class="wa-search">
+        <input type="text" placeholder="Search" disabled>
+      </form>
+      <a class="wa-new" href="{% url 'create_chat' %}">＋ New</a>
+    </div>
+    <ul class="wa-chatlist">
+      {% for chat in chats %}
+        <li class="wa-chatitem">
+          <a href="{% url 'chat_detail_page' chat_id=chat.id %}">
+            <div class="wa-chatitem-title">{{ chat.name|default:"Chat " }}</div>
+            <div class="wa-chatitem-sub">
+              {% with last=chat.messages.last %}
+                {% if last %}{{ last.sender.username }}: {{ last.content|truncatechars:28 }}{% endif %}
+              {% endwith %}
+            </div>
+          </a>
         </li>
-        --- {{ chat.participants.count }} members
-    {% empty %}
-    <li>No chats yet.</li>
-    {% endfor %}
-</ul>
-{% endblock  %}
+      {% empty %}
+        <li class="wa-empty">No chats yet.</li>
+      {% endfor %}
+    </ul>
+  </aside>
+  <section class="wa-chat">
+    <header class="wa-chat-header"><div class="wa-chat-title">Select a chat</div></header>
+    <ul class="wa-msglist"></ul>
+    <form class="wa-composer">
+      <input placeholder="Type a message" disabled />
+      <button disabled>Send</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

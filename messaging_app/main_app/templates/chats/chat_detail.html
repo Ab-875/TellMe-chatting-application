@@ -1,51 +1,121 @@
 {% extends "base.html" %}
-
+{% block title %}{{ chat.name|default:"Chat" }}{% endblock %}
 {% block content %}
-    {% if user.is_authenticated %}
-        <p>
-            <a href="{% url 'chat_edit' chat_id=chat.id %}"> Edit </a>
-            <a href="{% url 'chat_delete' chat_id=chat.id %}"> Delete </a>
-        </p>
-    {% endif %}
-    
-    <h1>Chat</h1>
+<div class="wa">
+  <aside class="wa-sidebar">
+    <div class="wa-sidebar-header">
+      <form action="{% url 'my_chats_page' %}" method="get" class="wa-search">
+        <input type="text" name="q" placeholder="Search chats">
+      </form>
+      <a class="wa-new" href="{% url 'create_chat' %}">＋ New</a>
+    </div>
+    <ul class="wa-chatlist">
+      {% for chat in request.user.chats.all %}
+        <li class="wa-chatitem {% if chat.id == chat.id %}active{% endif %}">
+          <a href="{% url 'chat_detail_page' chat_id=chat.id %}">
+            <div class="wa-chatitem-title">{{ chat.name|default:"Chat " }}{{ chat.id }}</div>
+            <div class="wa-chatitem-sub">
+              {% with last=chat.messages.last %}
+                {% if last %}{{ last.sender.username }}: {{ last.content|truncatechars:28 }}{% endif %}
+              {% endwith %}
+            </div>
+          </a>
+        </li>
+      {% empty %}
+        <li class="wa-empty">No chats yet.</li>
+      {% endfor %}
+    </ul>
+  </aside>
 
-    <ul id="messages">
-        {% for message in messages  %}
-            <li>{{ message.sender.username }}: {{ message.content}}</li>
-        {% endfor %}
+  <section class="wa-chat">
+    <header class="wa-chat-header">
+      <div class="wa-chat-title">
+        {{ chat.name|default:"Chat" }}
+        {% if chat.is_group %}<span class="wa-chip">Group</span>{% endif %}
+      </div>
+      <div class="wa-chat-actions">
+        <a href="{% url 'chat_edit' chat_id=chat.id %}" class="btn small">Edit</a>
+        <a href="{% url 'chat_delete' chat_id=chat.id %}" class="btn danger small">Delete</a>
+      </div>
+    </header>
+
+
+    <ul id="messages" class="wa-msglist">
+      {% for message in messages %}
+        <li class="wa-msg {% if message.sender_id == request.user.id %}me{% else %}them{% endif %}" data-id="{{ message.id }}">
+          <div class="wa-bubble">
+            {% if message.is_deleted %}
+              <div class="wa-text"><em>[deleted]</em></div>
+            {% else %}
+              {% if message.image %}<div class="wa-media"><img src="{{ message.image.url }}" alt="img"></div>{% endif %}
+              {% if message.file %}<div class="wa-media"><a href="{{ message.file.url }}">{{ message.file.name|slice:"-30:" }}</a></div>{% endif %}
+              {% if message.content %}<div class="wa-text">{{ message.content }}</div>{% endif %}
+              <div class="wa-meta">
+                {% if message.sender_id != request.user.id %}<span class="wa-sender">{{ message.sender.username }}</span>{% endif %}
+                <time datetime="{{ message.created_at|date:'chat' }}">{{ message.created_at|time:'H:i' }}</time>
+                {% if message.edited_at %}<span class="wa-edited">(edited)</span>{% endif %}
+              </div>
+            {% endif %}
+          </div>
+          {% if message.sender_id == request.user.id and not message.is_deleted %}
+            <div class="wa-actions">
+              <a href="{% url 'message_edit' chat_id=chat.id message_id=message.id %}">Edit</a>
+              <form action="{% url 'message_delete' chat_id=chat.id message_id=message.id %}" method="post">
+                {% csrf_token %}<button type="submit">Delete</button>
+              </form>
+            </div>
+          {% endif %}
+        </li>
+      {% endfor %}
     </ul>
 
-    <form id="send-form">
-        {% csrf_token %}
-        <input id="content" name="content" autocomplete="off" />
-        <button type="submit">Send</button>
+    <form id="send-form" class="wa-composer" action="{% url 'send_message' chat_id=chat.id %}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input id="content" name="content" placeholder="Type a message" />
+      <input type="file" name="image" accept="image/*">
+      <input type="file" name="file">
+      <button type="submit">Send</button>
     </form>
+  </section>
+</div>
 
-    {% comment %} inspired by stackoverflow and mdm code {% endcomment %}
-    <script>
-        const chatId = "{{ chat.id }}"
-        const wsScheme = location.protocol === "https:" ? "wss" : "ws"
-        const socket = new WebSocket(`${wsScheme}://${location.host}/ws/chats/${chatId}/`)
+<script>
+const chatId = "{{ chat.id }}";
+const me = "{{ request.user.username|escapejs }}";
+const wsScheme = location.protocol === "https:" ? "wss" : "ws";
+const socket = new WebSocket(`${wsScheme}://${location.host}/ws/chats/${chatId}/`);
+const ul = document.getElementById("messages");
 
-        const form = document.getElementById("send-form")
-        const ul = document.getElementById("messages")
-        const input = document.getElementById("content")
+socket.addEventListener("message", (event) => {
+  const data = JSON.parse(event.data);
+  if (!data || !data.message) return;
+  const message = data.message;
+  if (data.event === "created") appendMessage(message);
+  else if (["updated","deleted"].includes(data.event)) patchMessage(message);
+});
 
-        form.addEventListener("submit", (event) => {
-            event.preventDefault()
-            const content = input.value.trim()
-            if (content) {
-                socket.send(JSON.stringify({ content }))
-                input.value = ""
-            }
-        })
-
-        socket.addEventListener("message", (event) => {
-            const mes = JSON.parse(event.data)
-            const li = document.createElement("li")
-            li.textContent = `${mes.sender}: ${mes.content}`
-            ul.appendChild(li)
-        })
-    </script>
-{% endblock  %}
+function appendMessage(message) {
+  const li = document.createElement("li");
+  li.dataset.id = message.id;
+  li.className = "wa-msg " + (message.sender === me ? "me" : "them");
+  li.innerHTML = bubbleHTML(message, message.sender === me);
+  ul.appendChild(li);
+  ul.scrollTop = ul.scrollHeight;
+}
+function patchMessage(message) {
+  const li = ul.querySelector(`li[data-id="${message.id}"]`);
+  if (!li) return appendMessage(message);
+  li.innerHTML = bubbleHTML(message, li.classList.contains("me"));
+}
+function bubbleHTML(message, isMe) {
+  if (message.is_deleted) return `<div class="wa-bubble"><div class="wa-text"><em>[deleted]</em></div></div>`;
+  const text = message.content ? `<div class="wa-text">${message.content}</div>` : "";
+  const img = message.image_url ? `<div class="wa-media"><img src="${message.image_url}"></div>` : "";
+  const file = message.file_url ? `<div class="wa-media"><a href="${message.file_url}">${message.file_name}</a></div>` : "";
+  const edited = message.edited_at ? `<span class="wa-edited">(edited)</span>` : "";
+  const sender = !isMe ? `<span class="wa-sender">${message.sender}</span>` : "";
+  const time = new Date(message.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  return `<div class="wa-bubble">${img}${file}${text}<div class="wa-meta">${sender}<time>${time}</time>${edited}</div></div>`;
+}
+</script>
+{% endblock %}

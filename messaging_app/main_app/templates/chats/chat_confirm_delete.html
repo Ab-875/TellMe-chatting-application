@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Delete Chat</h1>
-    <p>Are you sure you want to delete "{{ object.name|default:'this chat'}}"?</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit"> Yes </button>
-        <a href="{% url "chat_detail_page" chat_id=object.id %}"> Cancel </a>
-    </form>
-{% endblock  %}
+<div class="container">
+  <h1>Delete Chat</h1>
+  <p>Are you sure you want to delete <strong>{{ object.name|default:"this chat" }}</strong>?</p>
+
+  <form method="post" class="form-box">
+    {% csrf_token %}
+    <p class="form-actions">
+      <button type="submit" class="btn danger">Yes, Delete</button>
+      <a href="{% url 'chat_detail_page' chat_id=object.id %}" class="btn cancel">Cancel</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

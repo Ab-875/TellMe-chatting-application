@@ -47,3 +47,17 @@ class Message(models.Model):
 
     def __str__(self):
         return f'{self.sender}: {self.content}'
+    
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "chat_id": self.chat_id,
+            "sender": self.sender.username,
+            "content": "" if self.is_deleted else self.content,
+            "image_url": None if (self.is_deleted or not self.image) else self.image.url,
+            "file_url": None if (self.is_deleted or not self.file) else self.file.url,
+            "file_name": None if (self.is_deleted or not self.file) else self.file.name.rsplit("/", 1)[-1],
+            "is_deleted": self.is_deleted,
+            "edited_at": self.edited_at.isoformat() if self.edited_at else None,
+            "created_at": self.created_at.isoformat(),
+        }

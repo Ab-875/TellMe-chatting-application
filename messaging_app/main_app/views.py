@@ -166,35 +166,40 @@ class MessageEditView(MessageOwnerMixin, FormView):
 
     def get_initial(self):
         return {"content": "" if self.message.is_deleted else self.message.content}
-    
+
     def form_valid(self, form):
-        self.message.content = form.cleaned_data["content"].strip()
-        self.message.is_deleted = False
-        self.message.edited_at = timezone.now()
-        self.message.image = None  
-        self.message.file = None
-        self.message.save()
+        msg = self.message
+        chat_id = msg.chat_id
+
+        msg.content = form.cleaned_data["content"].strip()
+        msg.is_deleted = False
+        msg.edited_at = timezone.now()
+        msg.image = None
+        msg.file = None
+        msg.save()
 
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            f"chat_{self.chat.id}",
-            {"type": "chat.event", "event": "created", "message": self.message.as_dict()},
+            f"chat_{chat_id}",
+            {"type": "chat.event", "event": "updated", "message": msg.as_dict()},
         )
-        return redirect("chat_detail_page", chat_id=self.chat.id)
+        return redirect("chat_detail_page", chat_id=chat_id)
+
 
 class MessageDeleteView(MessageOwnerMixin, View):
     def post(self, request, *args, **kwargs):
-        self.message.is_deleted = True
-        self.message.content = ""
-        self.message.image = None
-        self.message.file = None
-        self.message.edited_at = timezone.now()
-        self.message.save()
+        msg = self.message 
+        chat_id = msg.chat_id              
+        msg.is_deleted = True
+        msg.content = ""
+        msg.image = None
+        msg.file = None
+        msg.edited_at = timezone.now()
+        msg.save()
 
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            f"chat_{self.chat.id}",
-            {"type": "chat.event", "event": "deleted", "message": self.message.as_dict()},
+            f"chat_{chat_id}",
+            {"type": "chat.event", "event": "deleted", "message": msg.as_dict()},
         )
-
-        return redirect("chat_detail_page", chat_id=self.chat_id)
+        return redirect("chat_detail_page", chat_id=chat_id)

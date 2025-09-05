@@ -1,31 +1,36 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}TellMe{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
 <body>
-    <nav>
-        <a href="{% url "my_chats_page" %}">Home</a>
-        {% if user.is_authenticated%}
-            <p>Welcome, {{ user.username }}</p>
-            <a href="{% url "my_chats_page" %}">My Chats</a>
-            <a href="{% url "create_chat" %}">New Chat</a>
-            <form action="/auth/logout/" method="post">
-                {% csrf_token %}
-                <button>Logout</button>  
-            </form>
-            
-        {% else %}
-            <a href="{% url "login" %}">Login</a>
-            <a href="{% url "singup" %}">Sign Up</a>    
-        {% endif %}
-    </nav>
-    <hr>
+  <nav>
+  <a href="{% url 'my_chats_page' %}">Home</a>
+  {% if user.is_authenticated %}
+    <span>Welcome, {{ user.username }}</span>
+    <a href="{% url 'create_chat' %}">New Chat</a>
+    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit">Logout</button>
+    </form>
+  {% else %}
+    <a href="{% url 'login' %}">Login</a>
+    <a href="{% url 'signup' %}">Sign Up</a>
+  {% endif %}
+  </nav>
 
-    {% block content %}{% endblock  %}
+  {% comment %} {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %} {% endcomment %}
+
+  {% block content %}{% endblock %}
 </body>
 </html>
