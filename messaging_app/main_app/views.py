@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
-from django.views.generic import FormView, ListView, DetailView, UpdateView, DeleteView
+from django.views.generic import FormView, ListView, DetailView, UpdateView, DeleteView, View
 from . models import Chat, ChatMember, Message
 from . forms import CreateChatForm, ChatUpdateForm, MessageCreateForm, MessageUpdateForm
 from django.http import HttpResponseForbidden
