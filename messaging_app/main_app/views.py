@@ -178,7 +178,23 @@ class MessageEditView(MessageOwnerMixin, FormView):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f"chat_{self.chat.id}",
-            {"type": "chat.event", "event": "created", "message": msg.as_dict()},
+            {"type": "chat.event", "event": "created", "message": self.message.as_dict()},
         )
         return redirect("chat_detail_page", chat_id=self.chat.id)
-    
+
+class MessageDeleteView(MessageOwnerMixin, View):
+    def post(self, request, *args, **kwargs):
+        self.message.is_deleted = True
+        self.message.content = ""
+        self.message.image = None
+        self.message.file = None
+        self.message.edited_at = timezone.now()
+        self.message.save()
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"chat_{self.chat.id}",
+            {"type": "chat.event", "event": "deleted", "message": self.message.as_dict()},
+        )
+
+        return redirect("chat_detail_page", chat_id=self.chat_id)
