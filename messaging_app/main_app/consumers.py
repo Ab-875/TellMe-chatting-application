@@ -34,11 +34,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data=None):
         try:
-            payload = json.loads(text_data or {})
-            content = (payload.get("content") or "").strip()
+            payload = json.loads(text_data or "{}")
 
         except Exception:
-            content = ""
+            payload = {}
+
+        content = (payload.get("content") or "").strip()
         if not content:
             return
         
@@ -48,16 +49,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             chat_id=self.chat_id, sender=user, content = content
         )
 
-        event = {
-            "type": "chat.message",
-            "message": {
-                "id": msg.id,
-                "sender": user.username,
-                "content": msg.content,
-                "created_at": msg.created_at.isoformat(),
-            },
-        }
-        await self.channel_layer.group_send(self.group_name, event)
+        await self.channel_layer.group_send(self.group_name, 
+                                            {
+                                                "type": "chat.event",
+                                                "event": "created",
+                                                "message": msg.as_dict()
+                                            },
+                                            )
 
-    async def chat_message(self, event):
-        await self.send(text_data=json.dumps(event["message"]))
+    async def chat_event(self, event):
+        await self.send(text_data=json.dumps(event))
