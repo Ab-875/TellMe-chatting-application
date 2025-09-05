@@ -143,4 +143,19 @@ class SendMessagePageView(LoginRequiredMixin, ChatMembershipMixin, FormView):
     def form_invalid(self, form):
         return super().form_invalid(form)
     
-    
+    class MessageOwnerMixin(LoginRequiredMixin):
+        def dispatch(self, request, *args, **kwargs):
+            self.message = get_object_or_404(Message, pk=kwargs.get("message_id"))
+
+            if self.message.chat_id != int(kwargs.get("chat_id", 0)):
+                return HttpResponseForbidden("incorrect chat")
+            
+            if self.message.sender_id != request.user.id:
+                return HttpResponseForbidden("can only delete your messages")
+            
+            if not ChatMember.objects.filter(chat_id = self.message.chat_id, user=request.user).exists():
+                return HttpResponseForbidden("not a group member")
+            
+            
+            return super().dispatch(request, *args, **kwargs)
+        
