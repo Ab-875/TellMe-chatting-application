@@ -4,10 +4,11 @@ from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django.views.generic import FormView, ListView, DetailView, UpdateView, DeleteView
 from . models import Chat, ChatMember, Message
-from . forms import CreateChatForm, ChatUpdateForm, MessageCreateForm
+from . forms import CreateChatForm, ChatUpdateForm, MessageCreateForm, MessageUpdateForm
 from django.http import HttpResponseForbidden
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.utils import timezone
 
 # Create your views here.
 # https://stackoverflow.com/questions/4893673/adding-results-to-a-visible-autocompletetextarea-dropdown/4893813#4893813
@@ -142,20 +143,42 @@ class SendMessagePageView(LoginRequiredMixin, ChatMembershipMixin, FormView):
     
     def form_invalid(self, form):
         return super().form_invalid(form)
-    
-    class MessageOwnerMixin(LoginRequiredMixin):
-        def dispatch(self, request, *args, **kwargs):
-            self.message = get_object_or_404(Message, pk=kwargs.get("message_id"))
 
-            if self.message.chat_id != int(kwargs.get("chat_id", 0)):
-                return HttpResponseForbidden("incorrect chat")
+class MessageOwnerMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        self.message = get_object_or_404(Message, pk=kwargs.get("message_id"))
+
+        if self.message.chat_id != int(kwargs.get("chat_id", 0)):
+            return HttpResponseForbidden("incorrect chat")
             
-            if self.message.sender_id != request.user.id:
-                return HttpResponseForbidden("can only delete your messages")
+        if self.message.sender_id != request.user.id:
+            return HttpResponseForbidden("can only delete your messages")
             
-            if not ChatMember.objects.filter(chat_id = self.message.chat_id, user=request.user).exists():
-                return HttpResponseForbidden("not a group member")
+        if not ChatMember.objects.filter(chat_id = self.message.chat_id, user=request.user).exists():
+            return HttpResponseForbidden("not a group member")
             
             
-            return super().dispatch(request, *args, **kwargs)
-        
+        return super().dispatch(request, *args, **kwargs) 
+
+class MessageEditView(MessageOwnerMixin, FormView):
+    form_class = MessageUpdateForm
+    template_name = "chats/message_edit.html"
+
+    def get_initial(self):
+        return {"content": "" if self.message.is_deleted else self.message.content}
+    
+    def form_valid(self, form):
+        self.message.content = form.cleaned_data["content"].strip()
+        self.message.is_deleted = False
+        self.message.edited_at = timezone.now()
+        self.message.image = None  
+        self.message.file = None
+        self.message.save()
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"chat_{self.chat.id}",
+            {"type": "chat.event", "event": "created", "message": msg.as_dict()},
+        )
+        return redirect("chat_detail_page", chat_id=self.chat.id)
+    
