@@ -1,11 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django.views.generic import FormView, ListView, DetailView, UpdateView, DeleteView
-from . models import Chat, ChatMember
-from . forms import CreateChatForm, ChatUpdateForm
+from . models import Chat, ChatMember, Message
+from . forms import CreateChatForm, ChatUpdateForm, MessageCreateForm
 from django.http import HttpResponseForbidden
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 # Create your views here.
 # https://stackoverflow.com/questions/4893673/adding-results-to-a-visible-autocompletetextarea-dropdown/4893813#4893813
@@ -117,3 +119,28 @@ class ChatDeleteView(ChatAdminRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse_lazy("my_chats_page")
+    
+class SendMessagePageView(LoginRequiredMixin, ChatMembershipMixin, FormView):
+    form_class = MessageCreateForm
+    template_name = 'chats/chat_detail.html'
+
+    def form_valid(self, form):
+        msg = Message.objects.create(
+            chat = self.chat,
+            sender = self.request.user,
+            content = form.cleaned_data.get("content", "").strip(),
+            image = form.cleaned_data.get("image"),
+            file = form.cleaned_data.get("file"),
+        )
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"chat_{self.chat.id}",
+            {"type": "chat.event", "event": "created", "message": msg.as_dict()},
+        )
+        return redirect("chat_detail_page", chat_id=self.chat.id)
+    
+    def form_invalid(self, form):
+        return super().form_invalid(form)
+    
+    
