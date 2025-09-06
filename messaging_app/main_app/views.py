@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django.views.generic import FormView, ListView, DetailView, UpdateView, DeleteView, View
 from . models import Chat, ChatMember, Message
-from . forms import CreateChatForm, ChatUpdateForm, MessageCreateForm, MessageUpdateForm
+from . forms import CreateChatForm, ChatUpdateForm, MessageCreateForm, MessageUpdateForm, SignUpForm
 from django.http import HttpResponseForbidden
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -18,7 +18,7 @@ from django.utils import timezone
 
 class SignUpView(FormView):
     template_name = "registration/signup.html"
-    form_class = UserCreationForm
+    form_class = SignUpForm
     success_url = reverse_lazy("login")
 
 class MyChatsPageView(LoginRequiredMixin, ListView):

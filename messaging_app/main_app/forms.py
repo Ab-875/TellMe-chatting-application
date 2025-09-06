@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 from . models import Chat, ChatMember
 
 # https://stackoverflow.com/questions/14835607/django-form-exclude-a-user-instance-from-a-queryset
@@ -141,3 +142,14 @@ class MessageCreateForm(forms.Form):
 class MessageUpdateForm(forms.Form):
     content = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
 
+class SignUpForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ["username", "password1", "password2"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                "class": "form-input",
+            })
