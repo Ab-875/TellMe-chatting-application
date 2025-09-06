@@ -177,3 +177,45 @@ input[type="text"] {
   border-color: #dc3545;
 }
 .wa-msg .wa-actions button:hover { background: #c82333; }
+
+.login-container {
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 20px;
+  background: #111b21;
+  border: 1px solid #2a3942;
+  border-radius: 8px;
+  color: #e9edef;
+  text-align: center;
+}
+
+.login-container h1 {
+  margin-bottom: 20px;
+  color: #e9edef;
+}
+
+.login-form p {
+  margin: 12px 0;
+  text-align: left;
+}
+
+.login-form label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #2a3942;
+  border-radius: 4px;
+  background: #202c33;
+  color: #e9edef;
+}
+
+.login-form button.btn {
+  width: 100%;
+  margin-top: 16px;
+}
+

@@ -19,7 +19,7 @@
     </form>
   {% else %}
     <a href="{% url 'login' %}">Login</a>
-    <a href="{% url 'signup' %}">Sign Up</a>
+    {% comment %} <a href="{% url 'signup' %}">Sign Up</a> {% endcomment %}
   {% endif %}
   </nav>
 
