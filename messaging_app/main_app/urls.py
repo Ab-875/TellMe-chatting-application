@@ -3,11 +3,9 @@ from django.contrib import admin
 from . views import MyChatsPageView, CreateChatView, ChatDetailPageView, ChatUpdateView, ChatDeleteView, SendMessagePageView, MessageEditView, MessageDeleteView, SignUpView
 
 urlpatterns = [
-   path("admin/", admin.site.urls),
-   path("", include("main_app.urls")),
-   path("", include("django.contrib.auth.urls")),  
+   path("", MyChatsPageView.as_view(), name="home"),
    path("signup/", SignUpView.as_view(), name="signup"),
-   
+
    path("chats/", MyChatsPageView.as_view(), name="my_chats_page"),
    path("chats/new/", CreateChatView.as_view(), name="create_chat"),
    path("chats/<int:chat_id>/", ChatDetailPageView.as_view(), name="chat_detail_page"),

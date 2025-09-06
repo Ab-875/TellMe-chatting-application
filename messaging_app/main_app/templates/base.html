@@ -19,18 +19,9 @@
     </form>
   {% else %}
     <a href="{% url 'login' %}">Login</a>
-    {% comment %} <a href="{% url 'signup' %}">Sign Up</a> {% endcomment %}
+    <a href="{% url 'signup' %}">Sign Up</a>
   {% endif %}
   </nav>
-
-  {% comment %} {% if messages %}
-    <ul>
-      {% for message in messages %}
-        <li>{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %} {% endcomment %}
-
   {% block content %}{% endblock %}
 </body>
 </html>
