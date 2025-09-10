@@ -1,6 +1,6 @@
 # Project 4: 'TellMe Messaging Application' 
 
-![Image of the site interface]()
+![Image of the site interface](/public/images/TellMe.PNG)
 
 ### Introduction
 
