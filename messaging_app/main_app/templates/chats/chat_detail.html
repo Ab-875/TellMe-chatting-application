@@ -13,7 +13,7 @@
       {% for chat in request.user.chats.all %}
         <li class="wa-chatitem {% if chat.id == chat.id %}active{% endif %}">
           <a href="{% url 'chat_detail_page' chat_id=chat.id %}">
-            <div class="wa-chatitem-title">{{ chat.name|default:"Chat " }}{{ chat.id }}</div>
+            <div class="wa-chatitem-title">{{ chat.name|default:"Chat " }}</div>
             <div class="wa-chatitem-sub">
               {% with last=chat.messages.last %}
                 {% if last %}{{ last.sender.username }}: {{ last.content|truncatechars:28 }}{% endif %}
